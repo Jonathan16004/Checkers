@@ -624,7 +624,5 @@ public class Bitboard
         System.out.println(Long.toBinaryString(board.player2));
         System.out.println("WHITE KINGS");
         System.out.println(Long.toBinaryString(board.king2));
-
-        System.out.println("FINISH AT BOARD THE KILLING IN JUMPS");
     }
 }
