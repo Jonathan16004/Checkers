@@ -7,6 +7,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.scene.control.Button;
+import javafx.scene.layout.HBox;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,7 +28,7 @@ public class CheckersApplication extends Application
     private  boolean won = false;
 
     // Function that creates a scene
-    private Parent createContent()
+    private Parent createContentDuel()
     {
         Pane root = new Pane();
 
@@ -70,6 +72,16 @@ public class CheckersApplication extends Application
                 }
             }
         }
+        return root;
+    }
+
+    private Parent createContentMain()
+    {
+        Pane root = new Pane();
+
+        // Sets the size of the game board
+        root.setPrefSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
+
         return root;
     }
 
@@ -234,11 +246,40 @@ public class CheckersApplication extends Application
     }
     public void start(Stage stage) throws IOException
     {
-        Scene scene = new Scene(createContent());
+// Create buttons with inline styles
+        Button aiButton = new Button("🤖");
+        aiButton.setStyle("-fx-background-color: #3f51b5; -fx-text-fill: white; -fx-font-size: 40px; -fx-background-radius: 5px; -fx-border-color: black; -fx-border-width: 3px;");
+
+        Button duelButton = new Button("⚔");
+        duelButton.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 40px; -fx-background-radius: 5px; -fx-border-color: black; -fx-border-width: 3px;");
+
+        stage.setMinHeight(HEIGHT * TILE_SIZE); // Set minimum height
+        stage.setMinWidth(WIDTH * TILE_SIZE);  // Set minimum width
+
+// Create a layout to hold the buttons with inline styles
+        HBox buttonLayout = new HBox(100); // 10 for spacing between buttons
+        buttonLayout.getChildren().addAll(aiButton, duelButton);
+        buttonLayout.setStyle("-fx-alignment: center;");
+
+        // Set initial scene to a temporary "main menu" with the buttons
+        Scene scene = new Scene(buttonLayout);
         stage.setTitle("Poddavki");
         stage.setScene(scene);
         stage.show();
+
+        // Handle button actions
+        aiButton.setOnAction(e -> handleAIButtonClick());
+        duelButton.setOnAction(e -> handleDuelButtonClick(stage));
     }
+    private void handleAIButtonClick() {
+        // TODO: Implement AI mode logic (currently empty as it's not implemented yet)
+    }
+
+    private void handleDuelButtonClick(Stage stage) {
+        Scene duelScene = new Scene(createContentDuel());
+        stage.setScene(duelScene); // Switch to the duel scene
+    }
+
 
     // Launches the app
     public static void main(String[] args)
