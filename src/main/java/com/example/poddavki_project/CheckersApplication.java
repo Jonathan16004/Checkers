@@ -1,7 +1,6 @@
 package com.example.poddavki_project;
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -9,8 +8,6 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
-
-import java.io.IOException;
 import java.util.List;
 
 public class CheckersApplication extends Application
@@ -19,13 +16,14 @@ public class CheckersApplication extends Application
     public static final  int WIDTH = 8;
     public static final int HEIGHT = 8;
 
-    private Tile[][] boardVisual = new Tile[WIDTH][HEIGHT];
-    private Bitboard board = new Bitboard();
-    private Group tileGroup = new Group();
-    private Group pieceGroup = new Group();
+
+    // if any problems are cause change from final to normal
+    private final Tile[][] boardVisual = new Tile[WIDTH][HEIGHT];
+    private final Bitboard board = new Bitboard();
+    private final Group tileGroup = new Group();
+    private final Group pieceGroup = new Group();
 
     private PieceType currentPlayer = PieceType.WHITE;
-    private  boolean won = false;
 
     // Function that creates a scene
     private Parent createContentDuel()
@@ -75,12 +73,19 @@ public class CheckersApplication extends Application
         return root;
     }
 
-    private Parent createContentMain()
-    {
+    private Parent blackWinScene() {
         Pane root = new Pane();
-
-        // Sets the size of the game board
         root.setPrefSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
+
+        // Create a button to indicate black winning
+        Button blackWonButton = new Button("BLACK WON");
+        blackWonButton.setStyle("-fx-background-color: #121212; -fx-text-fill: #e8c309; -fx-font-size: 40px; -fx-background-radius: 5px; -fx-border-color: #e8c309; -fx-border-width: 4px;");
+        blackWonButton.setPrefSize(300, 300);
+        blackWonButton.setLayoutX((WIDTH * TILE_SIZE - blackWonButton.getPrefWidth()) / 2);
+        blackWonButton.setLayoutY((HEIGHT * TILE_SIZE - blackWonButton.getPrefHeight()) / 2);
+
+        // Add the button to the root pane
+        root.getChildren().add(blackWonButton);
 
         return root;
     }
@@ -109,7 +114,7 @@ public class CheckersApplication extends Application
                 }
                 System.out.println();
             }
-            if(!board.hasNonEmptyMoves(legalMoves))
+            if(board.emptyMoves(legalMoves))
             {
                 if (result.getType() == MoveType.NONE)
                 {
@@ -152,7 +157,7 @@ public class CheckersApplication extends Application
                     board.kingify(newY,newX);
                     System.out.println("NEW KING " + board.typeOfPiece(newY, newX));
                 }
-                if(!board.hasNonEmptyMovesForPiece(board.generateLegalMovesForPieceCapture(newY, newX, piece.getType())))
+                if(board.emptyMovesForPiece(board.generateLegalMovesForPieceCapture(newY, newX, piece.getType())))
                 {
                     currentPlayer = currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
                 }
@@ -215,18 +220,11 @@ public class CheckersApplication extends Application
                     else if (Math.abs(newX - x0) == 2/* && newY - y0 == piece.getType().moveDir * 2*/) {
                         int x1;
                         int y1;
-                            if(piece.getType() == PieceType.BLACKKING || piece.getType() == PieceType.WHITEKING)
-                            {
-                                x1 = x0 + (newX - x0) / 2;
-                                y1 = y0 + (newY - y0) / 2;
-                            }
-                            else
-                            {
-                                x1 = x0 + (newX - x0) / 2;
-                                y1 = y0 + (newY - y0) / 2;
-                            }
 
-                            if (boardVisual[x1][y1].hasPiece() && boardVisual[x1][y1].getPiece().getType() != piece.getType())
+                        x1 = x0 + (newX - x0) / 2;
+                        y1 = y0 + (newY - y0) / 2;
+
+                        if (boardVisual[x1][y1].hasPiece() && boardVisual[x1][y1].getPiece().getType() != piece.getType())
                             {
                                 System.out.println("KILL MOVE!");
                                 return new MoveResult(MoveType.KILL, boardVisual[x1][y1].getPiece());
@@ -244,7 +242,7 @@ public class CheckersApplication extends Application
     {
         return (int)(pixel + TILE_SIZE / 2) / TILE_SIZE;
     }
-    public void start(Stage stage) throws IOException
+    public void start(Stage stage)
     {
 // Create buttons with inline styles
         Button aiButton = new Button("🤖");
@@ -268,11 +266,14 @@ public class CheckersApplication extends Application
         stage.show();
 
         // Handle button actions
-        aiButton.setOnAction(e -> handleAIButtonClick());
+        aiButton.setOnAction(e -> handleAIButtonClick(stage));
         duelButton.setOnAction(e -> handleDuelButtonClick(stage));
     }
-    private void handleAIButtonClick() {
-        // TODO: Implement AI mode logic (currently empty as it's not implemented yet)
+    private void handleAIButtonClick(Stage stage) {
+        // Create a new scene with the black win scene content
+        Scene blackWinScene = new Scene(blackWinScene());
+        // Set the new scene to the stage
+        stage.setScene(blackWinScene);
     }
 
     private void handleDuelButtonClick(Stage stage) {

@@ -12,8 +12,8 @@ public class Piece extends StackPane
 
     private double mouseX, mouseY;
     private double oldX, oldY;
-    private Ellipse bg;
-    private Ellipse ellipse;
+    private final Ellipse bg;
+    private final Ellipse ellipse;
     public Piece(PieceType type, int x, int y)
     {
         this.type = type;

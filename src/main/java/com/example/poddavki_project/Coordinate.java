@@ -1,8 +1,8 @@
 package com.example.poddavki_project;
 
 public class Coordinate {
-    private int x;
-    private int y;
+    private final int x;
+    private final int y;
 
     public Coordinate(int x, int y) {
         this.x = x;
@@ -16,14 +16,5 @@ public class Coordinate {
 
     public int getY() {
         return y;
-    }
-
-    // Setter methods
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 }

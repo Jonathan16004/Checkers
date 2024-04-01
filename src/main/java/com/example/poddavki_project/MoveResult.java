@@ -3,8 +3,8 @@ package com.example.poddavki_project;
 public class MoveResult
 {
 
-    private MoveType type;
-    private Piece piece;
+    private final MoveType type;
+    private final Piece piece;
 
     // In case of a killing move
     public MoveResult(MoveType type, Piece piece)

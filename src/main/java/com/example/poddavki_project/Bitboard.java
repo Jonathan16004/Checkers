@@ -3,8 +3,6 @@ package com.example.poddavki_project;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.poddavki_project.CheckersApplication.TILE_SIZE;
-
 public class Bitboard
 {
     // Blacks
@@ -25,18 +23,18 @@ public class Bitboard
         king2 = 0;
 
         // Initializes both players
-        for (int row = 0; row < CheckersApplication.WIDTH; row++)
+        for (int row = 0; row < CheckersApplication.HEIGHT; row++)
         {
-            for (int col = 0; col < CheckersApplication.HEIGHT; col++)
+            for (int col = 0; col < CheckersApplication.WIDTH; col++)
             {
-                // Checks if it's the upper half of the board and the tile isn't a white tile
+                // Checks if it's the upper half of the board and the tiles are not a white tile
                 if (row <= 2 && (row + col) % 2 != 0)
                 {
                     // player 1 add with bitwise
                     player1 |= mask;
                 }
 
-                // Checks if it's the lower half of the board and the tile isn't a white tile
+                // Checks if it's the lower half of the board and the tile are white tile
                 if (row >= 5 && (row + col) % 2 != 0)
                 {
                     // player 2 add with bitwise
@@ -48,48 +46,40 @@ public class Bitboard
         }
     }
 
-    // Resets the board
-    public void resetBoard() {
-        this.player1 = 0;
-        this.player2 = 0;
-        this.king1 = 0;
-        this.king2 = 0;
-    }
-
     // Moves a piece on the bitboard
-    public void MovePiece(int oldX, int oldY, int newX, int newY)
+    public void MovePiece(int oldRow, int oldCol, int newRow, int newCol)
     {
-        PieceType type = typeOfPiece(oldX,oldY);
+        PieceType type = typeOfPiece(oldRow,oldCol);
 
         // Calculate the bit position of the old and new positions
-        long newPosition = 1L << (newX * CheckersApplication.HEIGHT + newY);
+        long newPosition = 1L << (newRow * CheckersApplication.HEIGHT + newCol);
 
         // Determine which player's bitboard to update based on the piece type
         if (type == PieceType.BLACK)
         {
             // Clear the old position for player 1
-            deletePiece(oldX, oldY);
+            deletePiece(oldRow, oldCol);
             // Set the new position for player 1
             player1 |= newPosition;
         }
 
         else if (type == PieceType.BLACKKING)
         {
-            deletePiece(oldX, oldY);
+            deletePiece(oldRow, oldCol);
             king1 |= newPosition;
         }
 
         else if (type == PieceType.WHITE)
         {
             // Clear the old position for player 2
-            deletePiece(oldX, oldY);
+            deletePiece(oldRow, oldCol);
             // Set the new position for player 2
             player2 |= newPosition;
         }
 
         else if (type == PieceType.WHITEKING)
         {
-            deletePiece(oldX, oldY);
+            deletePiece(oldRow, oldCol);
             king2 |= newPosition;
         }
 
@@ -157,7 +147,7 @@ public class Bitboard
     {
         List<List<Coordinate>> legalMoves = generateLegalCaptureMoves();
 
-        if(!hasNonEmptyMoves(legalMoves))
+        if(emptyMoves(legalMoves))
         {
             // Loop through each position on the board
             for (int x = 0; x < CheckersApplication.WIDTH; x++)
@@ -184,7 +174,7 @@ public class Bitboard
     {
         List<List<Coordinate>> legalMoves = generateLegalCaptureMoves();
 
-        if(!hasNonEmptyMoves(legalMoves))
+        if(emptyMoves(legalMoves))
         {
             // Loop through each position on the board
             for (int x = 0; x < CheckersApplication.WIDTH; x++)
@@ -218,23 +208,23 @@ public class Bitboard
     }
 
     // Helper to check if there's any legal moves
-    public boolean hasNonEmptyMoves(List<List<Coordinate>> legalMoves)
+    public boolean emptyMoves(List<List<Coordinate>> legalMoves)
     {
         for (List<Coordinate> pieceMoves : legalMoves) {
             if (!pieceMoves.isEmpty()) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
     // Helper to check if there's any legal moves
-    public boolean hasNonEmptyMovesForPiece(List<Coordinate> legalMoves) {
+    public boolean emptyMovesForPiece(List<Coordinate> legalMoves) {
         for (Coordinate move : legalMoves) {  // Iterate over individual coordinates
             if (move != null) {  // Check if the coordinate is not null
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     // Returns a list of all legal capture coordinates for each piece
@@ -272,7 +262,7 @@ public class Bitboard
 
     public boolean checkWin(PieceType type)
     {
-        return !hasNonEmptyMoves(generateLegalMovesForType(type)) || !hasPieces(type);
+        return emptyMoves(generateLegalMovesForType(type)) || !hasPieces(type);
     }
 
     // Check if a player is king
@@ -327,28 +317,25 @@ public class Bitboard
 
 
     // Generates legal moves for a specific piece
-    public List<Coordinate> generateLegalMovesForPiece(int x, int y, PieceType type) {
-        List<Coordinate> legalMoves = new ArrayList<>();
+    public List<Coordinate> generateLegalMovesForPiece(int row, int col, PieceType type) {
 
         // Get capturing moves
-        legalMoves.addAll(getCapturingMoves(x, y, type, new ArrayList<Coordinate>()));
+        List<Coordinate> legalMoves = new ArrayList<>(getCapturingMoves(row, col, type, new ArrayList<>()));
 
         // If there are no capturing moves, check for normal moves
         if (legalMoves.isEmpty())
         {
-            legalMoves.addAll(getNormalMoves(x, y, type));
+            legalMoves.addAll(getNormalMoves(row, col, type));
         }
 
         return legalMoves;
     }
     // Generates legal moves for a specific piece
-    public List<Coordinate> generateLegalMovesForPieceCapture(int x, int y, PieceType type) {
-        List<Coordinate> legalMoves = new ArrayList<>();
+    public List<Coordinate> generateLegalMovesForPieceCapture(int row, int col, PieceType type) {
 
         // Get capturing moves
-        legalMoves.addAll(getCapturingMoves(x, y, type, new ArrayList<Coordinate>()));
 
-        return legalMoves;
+        return new ArrayList<>(getCapturingMoves(row, col, type, new ArrayList<>()));
     }
 
     // Helper method to get capturing moves for a piece, including consecutive jumps
@@ -394,15 +381,14 @@ public class Bitboard
 
             for (int dx = -1; dx <= 1; dx++) {
                 if (dx != 0) { // Avoid same square (dx = 0)
-                    int dy = moveDirY; // Use move direction for dy
-                    int jumpX = x + dy;
+                    int jumpX = x + moveDirY;
                     int jumpY = y + dx;
 
                     // Check if jump is within bounds and captures opponent's piece
                     if (isValidPosition(jumpX, jumpY) && isOpponentPiece(jumpX, jumpY, type)) {
 
                         // Check if there's an empty space after the jump
-                        int afterJumpX = jumpX + dy;
+                        int afterJumpX = jumpX + moveDirY;
                         int afterJumpY = jumpY + dx;
 
                         if (isValidPosition(afterJumpX, afterJumpY) && isTileEmpty(afterJumpX, afterJumpY) && !containsCoordinate(previousJumps,afterJumpX,afterJumpY)) {
@@ -446,7 +432,7 @@ public class Bitboard
                 normalMoves.add(new Coordinate(x + moveDir, y + 1));
             }
             if (isValidPosition(x + moveDir, y - 1) && isTileEmpty(x + moveDir, y - 1)) {
-                normalMoves.add(new Coordinate(x + moveDir, y + -1));
+                normalMoves.add(new Coordinate(x + moveDir, y - 1));
             }
         }
         else if (type == PieceType.BLACKKING || type == PieceType.WHITEKING)
@@ -498,9 +484,9 @@ public class Bitboard
         }
     }
 
-    public PieceType typeOfPiece(int x, int y)
+    public PieceType typeOfPiece(int row, int col)
     {
-        long position = 1L << (x * CheckersApplication.HEIGHT + y);
+        long position = 1L << (row * CheckersApplication.HEIGHT + col);
 
         if ((player1 & position) != 0)
         {
@@ -522,12 +508,6 @@ public class Bitboard
         return PieceType.NONE;
     }
 
-    public boolean boardHasPiece(int x,int y)
-    {
-        long position = 1L << (x * CheckersApplication.HEIGHT + y);
-
-        return ((player2 | player1 | king1 | king2) & position) != 0;
-    }
     // Prints legal moves
     public void printLegalMoves()
     {
@@ -544,13 +524,13 @@ public class Bitboard
             System.out.println();
         }
     }
-    public void printLegalPieceMoves(int x,int y)
+    public void printLegalPieceMoves(int row,int col)
     {
-        PieceType type = typeOfPiece(x,y);
+        PieceType type = typeOfPiece(row,col);
 
-        List<Coordinate> legalMoves = generateLegalMovesForPiece(x,y,type);
+        List<Coordinate> legalMoves = generateLegalMovesForPiece(row,col,type);
 
-        System.out.println("Legal moves for " + type +" piece [" + x + "][" + y + "]: ");
+        System.out.println("Legal moves for " + type +" piece [" + row + "][" + col + "]: ");
 
         for (Coordinate move : legalMoves)
         {
@@ -561,11 +541,11 @@ public class Bitboard
 
     // Prints legal moves
     public void printBoard() {
-        PieceType[][] boardprint = bitToMatrix();
+        PieceType[][] boardPrint = bitToMatrix();
 
         for (int x = 0; x < CheckersApplication.WIDTH; x++) {
             for (int y = 0; y < CheckersApplication.HEIGHT; y++) {
-                System.out.print(boardprint[x][y] + " ");
+                System.out.print(boardPrint[x][y] + " ");
             }
             System.out.println();
         }
