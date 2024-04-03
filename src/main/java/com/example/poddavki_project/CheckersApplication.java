@@ -25,6 +25,8 @@ public class CheckersApplication extends Application
 
     private PieceType currentPlayer = PieceType.WHITE;
 
+    private boolean ai = false;
+
     // Function that creates a scene
     private Parent createContentDuel()
     {
@@ -73,6 +75,7 @@ public class CheckersApplication extends Application
         return root;
     }
 
+
     private Parent blackWinScene() {
         Pane root = new Pane();
         root.setPrefSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
@@ -91,6 +94,95 @@ public class CheckersApplication extends Application
     }
 
     // Creates a new object of a piece
+    private void aiMove(int x0, int y0, int newX, int newY, Piece piece)
+    {
+
+            MoveResult result = tryMove(piece, newX, newY);
+            // PROBLEM IS HERE
+            List<List<Coordinate>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
+            for (int i = 0; i < legalMoves.size(); i++)
+            {
+                List<Coordinate> movesForPiece = legalMoves.get(i);
+                System.out.println("Legal moves for piece number " + i + ": ");
+                for (Coordinate move : movesForPiece)
+                {
+                    System.out.println("[" + move.getX() + "][" + move.getY() + "]");
+                }
+                System.out.println();
+            }
+            if(board.emptyMoves(legalMoves))
+            {
+                if (result.getType() == MoveType.NONE)
+                {
+                    piece.abortMove();
+                }
+                else if (result.getType() == MoveType.NORMAL)
+                {
+                    piece.getType();
+                    piece.move(newX, newY);
+                    boardVisual[x0][y0].setPiece(null);
+                    boardVisual[newX][newY].setPiece(piece);
+                    board.MovePiece(y0, x0, newY, newX);
+                    // Checks if a player is now king
+                    if(board.checkKing(newY,newX,currentPlayer))
+                    {
+                        piece.setKing();
+                        board.kingify(newY,newX);
+                        System.out.println("NEW KING " + board.typeOfPiece(newY, newX));
+                    }
+                    currentPlayer = currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
+                    System.out.println("TURN: " + currentPlayer);
+                }
+                else
+                {
+                    piece.abortMove();
+                }
+            }
+            else if (result.getType() == MoveType.KILL)
+            {
+                piece.move(newX, newY);
+                boardVisual[x0][y0].setPiece(null);
+                boardVisual[newX][newY].setPiece(piece);
+                board.MovePiece(y0, x0, newY, newX);
+                Piece otherPiece = result.getPiece();
+                boardVisual[toBoard(otherPiece.getOldX())][toBoard(otherPiece.getOldY())].setPiece(null);
+                board.deletePiece(toBoard(otherPiece.getOldY()), toBoard(otherPiece.getOldX()));
+                pieceGroup.getChildren().remove(otherPiece);
+                if(board.checkKing(newY,newX,currentPlayer))
+                {
+                    piece.setKing();
+                    board.kingify(newY,newX);
+                    System.out.println("NEW KING " + board.typeOfPiece(newY, newX));
+                }
+                if(board.emptyMovesForPiece(board.generateLegalMovesForPieceCapture(newY, newX, piece.getType())))
+                {
+                    currentPlayer = currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
+                }
+            }
+            else
+            {
+                piece.abortMove();
+            }
+            // White won
+            if(board.checkWin(PieceType.WHITE))
+            {
+                System.out.println("WHITE WON");
+            }
+            // Black won
+            else if(board.checkWin(PieceType.BLACK))
+            {
+                System.out.println("BLACK WON");
+            }
+            // Tie
+            else if (board.checkWin(PieceType.BLACK) && board.checkWin(PieceType.WHITE))
+            {
+                System.out.println("Tie");
+            }
+            board.printBoard();
+        System.out.println("AI");
+    }
+
+    // Creates a new object of a piece
     private Piece makePiece(PieceType type, int x, int y)
     {
         Piece piece = new Piece(type, x, y);
@@ -102,7 +194,6 @@ public class CheckersApplication extends Application
             MoveResult result = tryMove(piece, newX, newY);
             int x0 = toBoard(piece.getOldX());
             int y0 = toBoard(piece.getOldY());
-            // PROBLEM IS HERE
             List<List<Coordinate>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
             for (int i = 0; i < legalMoves.size(); i++)
             {
@@ -182,8 +273,59 @@ public class CheckersApplication extends Application
                 System.out.println("Tie");
             }
             board.printBoard();
+            if (ai && currentPlayer == PieceType.BLACK)
+            {
+                int fromRow=0;
+                int fromCol=0;
+                int row=0;
+                int col=0;
+                Piece pieceAi = null;
+                legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
+                if(board.emptyMoves(legalMoves))
+                {
+                    legalMoves = board.generateLegalMovesForType(currentPlayer);
+                    for (int i = 0; i < legalMoves.size(); i++)
+                    {
+                        List<Coordinate> movesForPiece = legalMoves.get(i);
+                        System.out.println("Legal moves for piece number " + i + ": ");
+                        for (Coordinate move : movesForPiece)
+                        {
+                            System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
+                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == currentPlayer)
+                            {
+                                row=move.getX();
+                                col=move.getY();
+                                fromRow = move.getOldX();
+                                fromCol = move.getOldY();
+                                pieceAi = boardVisual[fromCol][fromRow].getPiece();
+                            }
+                        }
+                    }
+                    aiMove(fromCol,fromRow,col,row,pieceAi);
+                }
+                else
+                {
+                    for (int i = 0; i < legalMoves.size(); i++)
+                    {
+                        List<Coordinate> movesForPiece = legalMoves.get(i);
+                        System.out.println("Legal moves for piece number " + i + ": ");
+                        for (Coordinate move : movesForPiece)
+                        {
+                            System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
+                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == currentPlayer)
+                            {
+                                row=move.getX();
+                                col=move.getY();
+                                fromRow = move.getOldX();
+                                fromCol = move.getOldY();
+                                pieceAi = boardVisual[fromCol][fromRow].getPiece();
+                            }
+                        }
+                    }
+                    aiMove(fromCol,fromRow,col,row,pieceAi);
+                }
+            }
         });
-
         return piece;
     }
 
@@ -270,10 +412,10 @@ public class CheckersApplication extends Application
         duelButton.setOnAction(e -> handleDuelButtonClick(stage));
     }
     private void handleAIButtonClick(Stage stage) {
-        // Create a new scene with the black win scene content
-        Scene blackWinScene = new Scene(blackWinScene());
-        // Set the new scene to the stage
-        stage.setScene(blackWinScene);
+        // Create a new scene for an AI
+        ai = true;
+        Scene aiScene = new Scene(createContentDuel());
+        stage.setScene(aiScene);
     }
 
     private void handleDuelButtonClick(Stage stage) {

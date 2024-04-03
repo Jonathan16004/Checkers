@@ -361,7 +361,7 @@ public class Bitboard
                             if (isValidPosition(afterJumpX, afterJumpY) && isTileEmpty(afterJumpX, afterJumpY) && !containsCoordinate(previousJumps,afterJumpX,afterJumpY))
                             {
                                 // Adds the jumped coordinate
-                                previousJumps.add(new Coordinate(afterJumpX, afterJumpY));
+                                previousJumps.add(new Coordinate(afterJumpX, afterJumpY, x, y));
                                 getCapturingMoves(afterJumpX, afterJumpY, type, previousJumps);
 
                             }
@@ -393,7 +393,7 @@ public class Bitboard
 
                         if (isValidPosition(afterJumpX, afterJumpY) && isTileEmpty(afterJumpX, afterJumpY) && !containsCoordinate(previousJumps,afterJumpX,afterJumpY)) {
                             // Adds the jumped coordinate
-                            previousJumps.add(new Coordinate(afterJumpX, afterJumpY));
+                            previousJumps.add(new Coordinate(afterJumpX, afterJumpY, x, y));
                             getCapturingMoves(afterJumpX, afterJumpY, type, previousJumps);
                         }
                     }
@@ -429,10 +429,10 @@ public class Bitboard
             // Check bounds and empty tiles, diagonal left and right forward movement
             if (isValidPosition(x + moveDir, y + 1) && isTileEmpty(x + moveDir, y + 1))
             {
-                normalMoves.add(new Coordinate(x + moveDir, y + 1));
+                normalMoves.add(new Coordinate(x + moveDir, y + 1, x, y));
             }
             if (isValidPosition(x + moveDir, y - 1) && isTileEmpty(x + moveDir, y - 1)) {
-                normalMoves.add(new Coordinate(x + moveDir, y - 1));
+                normalMoves.add(new Coordinate(x + moveDir, y - 1, x, y));
             }
         }
         else if (type == PieceType.BLACKKING || type == PieceType.WHITEKING)
@@ -443,7 +443,7 @@ public class Bitboard
                         int distance = 1;
                         while (isValidPosition(x + dx * distance, y + dy * distance) &&
                                 isTileEmpty(x + dx * distance, y + dy * distance)) {
-                            normalMoves.add(new Coordinate(x + dx * distance, y + dy * distance));
+                            normalMoves.add(new Coordinate(x + dx * distance, y + dy * distance, x, y));
                             distance++; // Check further in the same diagonal direction
                         }
                     }
@@ -519,7 +519,7 @@ public class Bitboard
             System.out.println("Legal moves for piece number " + i + ": ");
             for (Coordinate move : movesForPiece)
             {
-                System.out.println("[" + move.getX() + "][" + move.getY() + "]");
+                System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
             }
             System.out.println();
         }
@@ -534,7 +534,7 @@ public class Bitboard
 
         for (Coordinate move : legalMoves)
         {
-            System.out.println("[" + move.getX() + "][" + move.getY() + "]");
+            System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
         }
 
     }
