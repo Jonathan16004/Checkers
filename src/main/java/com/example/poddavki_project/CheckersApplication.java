@@ -9,6 +9,8 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
@@ -30,6 +32,8 @@ public class CheckersApplication extends Application
     private PieceType currentPlayer = PieceType.WHITE;
 
     private boolean ai = false;
+    private boolean won = false;
+    private final Stage stageWon = new Stage();
 
     // Function that creates a scene
     private Parent createContentDuel()
@@ -87,6 +91,40 @@ public class CheckersApplication extends Application
         // Create a button to indicate black winning
         Button blackWonButton = new Button("BLACK WON");
         blackWonButton.setStyle("-fx-background-color: #121212; -fx-text-fill: #e8c309; -fx-font-size: 40px; -fx-background-radius: 5px; -fx-border-color: #e8c309; -fx-border-width: 4px;");
+        blackWonButton.setPrefSize(300, 300);
+        blackWonButton.setLayoutX((WIDTH * TILE_SIZE - blackWonButton.getPrefWidth()) / 2);
+        blackWonButton.setLayoutY((HEIGHT * TILE_SIZE - blackWonButton.getPrefHeight()) / 2);
+
+        // Add the button to the root pane
+        root.getChildren().add(blackWonButton);
+
+        return root;
+    }
+
+    private Parent whiteWinScene() {
+        Pane root = new Pane();
+        root.setPrefSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
+
+        // Create a button to indicate black winning
+        Button blackWonButton = new Button("WHITE WON");
+        blackWonButton.setStyle("-fx-background-color: #E8E8E8; -fx-text-fill: #e8c309; -fx-font-size: 40px; -fx-background-radius: 5px; -fx-border-color: #e8c309; -fx-border-width: 4px;");
+        blackWonButton.setPrefSize(300, 300);
+        blackWonButton.setLayoutX((WIDTH * TILE_SIZE - blackWonButton.getPrefWidth()) / 2);
+        blackWonButton.setLayoutY((HEIGHT * TILE_SIZE - blackWonButton.getPrefHeight()) / 2);
+
+        // Add the button to the root pane
+        root.getChildren().add(blackWonButton);
+
+        return root;
+    }
+
+    private Parent tieScene() {
+        Pane root = new Pane();
+        root.setPrefSize(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
+
+        // Create a button to indicate black winning
+        Button blackWonButton = new Button("TIE");
+        blackWonButton.setStyle("-fx-background-color: #949494; -fx-text-fill: #e8c309; -fx-font-size: 40px; -fx-background-radius: 5px; -fx-border-color: #e8c309; -fx-border-width: 4px;");
         blackWonButton.setPrefSize(300, 300);
         blackWonButton.setLayoutX((WIDTH * TILE_SIZE - blackWonButton.getPrefWidth()) / 2);
         blackWonButton.setLayoutY((HEIGHT * TILE_SIZE - blackWonButton.getPrefHeight()) / 2);
@@ -171,16 +209,28 @@ public class CheckersApplication extends Application
             if(board.checkWin(PieceType.WHITE))
             {
                 System.out.println("WHITE WON");
+                Scene whiteWon = new Scene(whiteWinScene());
+                stageWon.setScene(whiteWon);
+                stageWon.show();
+                this.won = true;
             }
             // Black won
             else if(board.checkWin(PieceType.BLACK))
             {
                 System.out.println("BLACK WON");
+                Scene blackWon = new Scene(blackWinScene());
+                stageWon.setScene(blackWon);
+                stageWon.show();
+                this.won = true;
             }
             // Tie
             else if (board.checkWin(PieceType.BLACK) && board.checkWin(PieceType.WHITE))
             {
                 System.out.println("Tie");
+                Scene tie = new Scene(tieScene());
+                stageWon.setScene(tie);
+                stageWon.show();
+                this.won = true;
             }
             board.printBoard();
         System.out.println("AI");
@@ -265,29 +315,46 @@ public class CheckersApplication extends Application
             if(board.checkWin(PieceType.WHITE))
             {
                 System.out.println("WHITE WON");
+                Scene whiteWon = new Scene(whiteWinScene());
+                stageWon.setScene(whiteWon);
+                stageWon.show();
+                this.won = true;
             }
             // Black won
             else if(board.checkWin(PieceType.BLACK))
             {
                 System.out.println("BLACK WON");
+                Scene blackWon = new Scene(blackWinScene());
+                stageWon.setScene(blackWon);
+                stageWon.show();
+                this.won = true;
             }
             // Tie
             else if (board.checkWin(PieceType.BLACK) && board.checkWin(PieceType.WHITE))
             {
                 System.out.println("Tie");
+                Scene tie = new Scene(tieScene());
+                stageWon.setScene(tie);
+                stageWon.show();
+                this.won = true;
             }
             board.printBoard();
-            while (ai && currentPlayer == PieceType.BLACK)
+            while (ai && currentPlayer == PieceType.BLACK && !won)
             {
                 int fromRow=0;
                 int fromCol=0;
                 int row=0;
                 int col=0;
                 Piece pieceAi = null;
-                legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
+                legalMoves = board.generateLegalCaptureMovesForType(PieceType.BLACK);
                 if(board.emptyMoves(legalMoves))
                 {
-                    legalMoves = board.generateLegalMovesForType(currentPlayer);
+                    legalMoves = board.generateLegalMovesForType(PieceType.BLACK);
+                    if(board.emptyMoves(legalMoves))
+                    {
+                        System.out.println("No suitable moves.");
+                        break;
+                    }
                     for (int i = 0; i < legalMoves.size(); i++)
                     {
                         List<Coordinate> movesForPiece = legalMoves.get(i);
@@ -295,16 +362,21 @@ public class CheckersApplication extends Application
                         for (Coordinate move : movesForPiece)
                         {
                             System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
-                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == currentPlayer) {
+                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == PieceType.BLACK ||  board.typeOfPiece(move.getOldX(),move.getOldY()) == PieceType.BLACKKING ) {
                                 row = move.getX();
                                 col = move.getY();
                                 fromRow = move.getOldX();
                                 fromCol = move.getOldY();
                                 pieceAi = boardVisual[fromCol][fromRow].getPiece();
+                                break;
                             }
                         }
                     }
+                    try {
                         aiMove(fromCol, fromRow, col, row, pieceAi);
+                    } catch (Exception E) {
+                        System.out.println("An error occurred: " + E.getMessage());
+                    }
                 }
                 else
                 {
@@ -315,16 +387,21 @@ public class CheckersApplication extends Application
                         for (Coordinate move : movesForPiece)
                         {
                             System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
-                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == currentPlayer) {
+                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == PieceType.BLACK || board.typeOfPiece(move.getOldX(),move.getOldY()) == PieceType.BLACKKING ) {
                                 row = move.getX();
                                 col = move.getY();
                                 fromRow = move.getOldX();
                                 fromCol = move.getOldY();
                                 pieceAi = boardVisual[fromCol][fromRow].getPiece();
+                                if(pieceAi != null) break;
                             }
                         }
                     }
+                    try {
                         aiMove(fromCol,fromRow,col,row,pieceAi);
+                    } catch (Exception E) {
+                        System.out.println("An error occurred: " + E.getMessage());
+                    }
                 }
             }
         });
