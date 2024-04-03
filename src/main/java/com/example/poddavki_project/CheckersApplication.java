@@ -337,6 +337,7 @@ public class CheckersApplication extends Application
                 stageWon.setScene(tie);
                 stageWon.show();
                 this.won = true;
+                // :)
             }
             board.printBoard();
             while (ai && currentPlayer == PieceType.BLACK && !won)
