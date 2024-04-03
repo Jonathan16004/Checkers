@@ -4,11 +4,15 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import java.util.List;
+import java.util.Random;
+
+
 
 public class CheckersApplication extends Application
 {
@@ -273,7 +277,7 @@ public class CheckersApplication extends Application
                 System.out.println("Tie");
             }
             board.printBoard();
-            if (ai && currentPlayer == PieceType.BLACK)
+            while (ai && currentPlayer == PieceType.BLACK)
             {
                 int fromRow=0;
                 int fromCol=0;
@@ -291,17 +295,16 @@ public class CheckersApplication extends Application
                         for (Coordinate move : movesForPiece)
                         {
                             System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
-                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == currentPlayer)
-                            {
-                                row=move.getX();
-                                col=move.getY();
+                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == currentPlayer) {
+                                row = move.getX();
+                                col = move.getY();
                                 fromRow = move.getOldX();
                                 fromCol = move.getOldY();
                                 pieceAi = boardVisual[fromCol][fromRow].getPiece();
                             }
                         }
                     }
-                    aiMove(fromCol,fromRow,col,row,pieceAi);
+                        aiMove(fromCol, fromRow, col, row, pieceAi);
                 }
                 else
                 {
@@ -312,17 +315,16 @@ public class CheckersApplication extends Application
                         for (Coordinate move : movesForPiece)
                         {
                             System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
-                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == currentPlayer)
-                            {
-                                row=move.getX();
-                                col=move.getY();
+                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == currentPlayer) {
+                                row = move.getX();
+                                col = move.getY();
                                 fromRow = move.getOldX();
                                 fromCol = move.getOldY();
                                 pieceAi = boardVisual[fromCol][fromRow].getPiece();
                             }
                         }
                     }
-                    aiMove(fromCol,fromRow,col,row,pieceAi);
+                        aiMove(fromCol,fromRow,col,row,pieceAi);
                 }
             }
         });
