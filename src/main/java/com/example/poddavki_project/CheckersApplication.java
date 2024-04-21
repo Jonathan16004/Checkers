@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -141,7 +142,7 @@ public class CheckersApplication extends Application
 
             MoveResult result = tryMove(piece, newX, newY);
             // PROBLEM IS HERE
-            List<List<Coordinate>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
+            Map<Coordinate, List<Coordinate>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
             for (int i = 0; i < legalMoves.size(); i++)
             {
                 List<Coordinate> movesForPiece = legalMoves.get(i);
@@ -242,23 +243,15 @@ public class CheckersApplication extends Application
         Piece piece = new Piece(type, x, y);
         piece.setOnMouseReleased(e ->
         {
+            System.out.println("TURN: " + currentPlayer);
+            board.generateLegalCaptureMovesForType(currentPlayer);
             int newX = toBoard(piece.getLayoutX());
             int newY = toBoard(piece.getLayoutY());
 
             MoveResult result = tryMove(piece, newX, newY);
             int x0 = toBoard(piece.getOldX());
             int y0 = toBoard(piece.getOldY());
-            List<List<Coordinate>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
-            for (int i = 0; i < legalMoves.size(); i++)
-            {
-                List<Coordinate> movesForPiece = legalMoves.get(i);
-                System.out.println("Legal moves for piece number " + i + ": ");
-                for (Coordinate move : movesForPiece)
-                {
-                    System.out.println("[" + move.getX() + "][" + move.getY() + "]");
-                }
-                System.out.println();
-            }
+            Map<Coordinate, List<Coordinate>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
             if(board.emptyMoves(legalMoves))
             {
                 if (result.getType() == MoveType.NONE)
@@ -279,7 +272,6 @@ public class CheckersApplication extends Application
                         System.out.println("NEW KING " + board.typeOfPiece(newY, newX));
                     }
                     currentPlayer = currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
-                    System.out.println("TURN: " + currentPlayer);
                 }
                 else
                 {
@@ -416,6 +408,7 @@ public class CheckersApplication extends Application
         int y0 = toBoard(piece.getOldY());
         PieceType checkTurn = piece.getType();
         System.out.println("THE TYPE OF THE PIECE IS " + board.typeOfPiece(y0,x0));
+        // PROBLEM IS HERE FOR SOME REASON
         List<Coordinate> movesForPiece = board.generateLegalMovesForPiece(y0,x0,piece.getType());
         board.printLegalPieceMoves(y0,x0);
         if(piece.getType() == PieceType.WHITEKING)

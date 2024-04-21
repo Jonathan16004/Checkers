@@ -1,7 +1,9 @@
 package com.example.poddavki_project;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Bitboard
 {
@@ -143,9 +145,10 @@ public class Bitboard
     }
 
     // Returns a list of all legal coordinates for each piece
-    public List<List<Coordinate>> generateLegalMoves()
+    public Map<Coordinate, List<Coordinate>> generateLegalMoves()
     {
-        List<List<Coordinate>> legalMoves = generateLegalCaptureMoves();
+
+        Map<Coordinate, List<Coordinate>> legalMoves = generateLegalCaptureMoves();
 
         if(emptyMoves(legalMoves))
         {
@@ -160,8 +163,9 @@ public class Bitboard
                     // If the current position contains any type of piece
                     if (((player1 | king1 | player2 | king2) & currentPosition) != 0)
                     {
+                        Coordinate fromLocation = new Coordinate(x,y);
                         List<Coordinate> pieceLegalMovesCapture = generateLegalMovesForPiece(x, y, type);
-                        legalMoves.add(pieceLegalMovesCapture);
+                        legalMoves.put(fromLocation, pieceLegalMovesCapture);
                     }
                 }
             }
@@ -170,9 +174,9 @@ public class Bitboard
     }
 
     // Returns a list of all legal coordinates for each piece
-    public List<List<Coordinate>> generateLegalMovesForType(PieceType type)
+    public Map<Coordinate, List<Coordinate>> generateLegalMovesForType(PieceType type)
     {
-        List<List<Coordinate>> legalMoves = generateLegalCaptureMoves();
+        Map<Coordinate, List<Coordinate>> legalMoves = generateLegalCaptureMoves();
 
         if(emptyMoves(legalMoves))
         {
@@ -188,8 +192,9 @@ public class Bitboard
                         // If the current position contains any type of piece
                         if (((player1 | king1) & currentPosition) != 0)
                         {
+                            Coordinate fromLocation = new Coordinate(x,y);
                             List<Coordinate> pieceLegalMovesCapture = generateLegalMovesForPiece(x, y, type);
-                            legalMoves.add(pieceLegalMovesCapture);
+                            legalMoves.put(fromLocation, pieceLegalMovesCapture);
                         }
                     }
                     else
@@ -197,8 +202,9 @@ public class Bitboard
                         // If the current position contains any type of piece
                         if (((player2 | king2) & currentPosition) != 0)
                         {
+                            Coordinate fromLocation = new Coordinate(x,y);
                             List<Coordinate> pieceLegalMovesCapture = generateLegalMovesForPiece(x, y, type);
-                            legalMoves.add(pieceLegalMovesCapture);
+                            legalMoves.put(fromLocation, pieceLegalMovesCapture);
                         }
                     }
                 }
@@ -207,16 +213,6 @@ public class Bitboard
         return legalMoves;
     }
 
-    // Helper to check if there's any legal moves
-    public boolean emptyMoves(List<List<Coordinate>> legalMoves)
-    {
-        for (List<Coordinate> pieceMoves : legalMoves) {
-            if (!pieceMoves.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
     // Helper to check if there's any legal moves
     public boolean emptyMovesForPiece(List<Coordinate> legalMoves) {
         for (Coordinate move : legalMoves) {  // Iterate over individual coordinates
@@ -228,9 +224,9 @@ public class Bitboard
     }
 
     // Returns a list of all legal capture coordinates for each piece
-    public List<List<Coordinate>> generateLegalCaptureMoves()
+    public Map<Coordinate, List<Coordinate>> generateLegalCaptureMoves()
     {
-        List<List<Coordinate>> legalMoves = new ArrayList<>();
+        Map<Coordinate, List<Coordinate>> legalMoves = new HashMap<>();;
 
         // Loop through each position on the board
         for (int x = 0; x < CheckersApplication.WIDTH; x++)
@@ -243,12 +239,31 @@ public class Bitboard
                 // If the current position contains any type of piece
                 if (((player1 | king1 | player2 | king2) & currentPosition) != 0)
                 {
+                    Coordinate fromLocation = new Coordinate(x,y);
                     List<Coordinate> pieceLegalMovesCapture = generateLegalMovesForPieceCapture(x, y, type);
-                    legalMoves.add(pieceLegalMovesCapture);
+                    legalMoves.put(fromLocation, pieceLegalMovesCapture);
                 }
             }
         }
         return legalMoves;
+    }
+
+    // Checks if the map values is all empty
+    public boolean emptyMoves(Map<Coordinate, List<Coordinate>> legalMoves) {
+        if (legalMoves == null || legalMoves.isEmpty()) {
+            // Handle the case where legalMoves is null or empty (might be necessary depending on your logic)
+            return true;
+        }
+
+        // Iterate through values manually
+        for (List<Coordinate> moveList : legalMoves.values()) {
+            if (!moveList.isEmpty()) {
+                return false; // If even one list has elements, return false
+            }
+        }
+
+        // If loop completes without finding non-empty list, all are empty
+        return true;
     }
 
     public boolean hasPieces(PieceType type)
@@ -280,10 +295,11 @@ public class Bitboard
 
         return false; // Not a king-making location
     }
+
     // Returns a list of all legal capture coordinates for a kind of piece
-    public List<List<Coordinate>> generateLegalCaptureMovesForType(PieceType type)
+    public Map<Coordinate, List<Coordinate>> generateLegalCaptureMovesForType(PieceType type)
     {
-        List<List<Coordinate>> legalMoves = new ArrayList<>();
+        Map<Coordinate, List<Coordinate>> legalMoves = new HashMap<>();
 
         // Loop through each position on the board
         for (int x = 0; x < CheckersApplication.WIDTH; x++)
@@ -297,8 +313,9 @@ public class Bitboard
                     // If the current position contains any type of piece
                     if (((player1 | king1) & currentPosition) != 0)
                     {
+                        Coordinate fromLocation = new Coordinate(x,y);
                         List<Coordinate> pieceLegalMovesCapture = generateLegalMovesForPieceCapture(x, y, typeOfPiece(x,y));
-                        legalMoves.add(pieceLegalMovesCapture);
+                        legalMoves.put(fromLocation, pieceLegalMovesCapture);
                     }
                 }
                 else
@@ -306,8 +323,9 @@ public class Bitboard
                     // If the current position contains any type of piece
                     if (((player2 | king2) & currentPosition) != 0)
                     {
+                        Coordinate fromLocation = new Coordinate(x,y);
                         List<Coordinate> pieceLegalMovesCapture = generateLegalMovesForPieceCapture(x, y, typeOfPiece(x,y));
-                        legalMoves.add(pieceLegalMovesCapture);
+                        legalMoves.put(fromLocation, pieceLegalMovesCapture);
                     }
                 }
             }
@@ -325,6 +343,7 @@ public class Bitboard
         // If there are no capturing moves, check for normal moves
         if (legalMoves.isEmpty())
         {
+            // PROBLEM IS HERE WTF
             legalMoves.addAll(getNormalMoves(row, col, type));
         }
 
@@ -341,6 +360,7 @@ public class Bitboard
     // Helper method to get capturing moves for a piece, including consecutive jumps
     private List<Coordinate> getCapturingMoves(int x, int y, PieceType type, List<Coordinate> previousJumps) {
 
+        System.out.println("CAPTURETURETURE");
         // Check capturing moves in all 4 diagonal directions
         if(!previousJumps.isEmpty() || type == PieceType.BLACKKING || type == PieceType.WHITEKING)
         {
@@ -418,6 +438,7 @@ public class Bitboard
     // Helper method to get normal moves for a piece
     private List<Coordinate> getNormalMoves(int x, int y, PieceType type)
     {
+        System.out.println("NORMALMOVESVESVES");
         List<Coordinate> normalMoves = new ArrayList<>();
 
         // In case of regular piece
@@ -435,17 +456,12 @@ public class Bitboard
                 normalMoves.add(new Coordinate(x + moveDir, y - 1, x, y));
             }
         }
-        else if (type == PieceType.BLACKKING || type == PieceType.WHITEKING)
-        {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    if (dx != 0 && dy != 0) { // Avoid moving to the same position
-                        int distance = 1;
-                        while (isValidPosition(x + dx * distance, y + dy * distance) &&
-                                isTileEmpty(x + dx * distance, y + dy * distance)) {
-                            normalMoves.add(new Coordinate(x + dx * distance, y + dy * distance, x, y));
-                            distance++; // Check further in the same diagonal direction
-                        }
+        else if (type == PieceType.BLACKKING || type == PieceType.WHITEKING) {
+            // Check only four diagonals for kings
+            for (int dx = -1; dx <= 1; dx += 2) {
+                for (int dy = -1; dy <= 1; dy += 2) {
+                    if (isValidPosition(x + dx, y + dy) && isTileEmpty(x + dx, y + dy)) {
+                        normalMoves.add(new Coordinate(x + dx, y + dy, x, y));
                     }
                 }
             }
@@ -511,15 +527,15 @@ public class Bitboard
     // Prints legal moves
     public void printLegalMoves()
     {
-        List<List<Coordinate>> legalMoves = generateLegalMoves();
 
-        for (int i = 0; i < legalMoves.size(); i++)
+        Map<Coordinate, List<Coordinate>> legalMoves = generateLegalMoves();
+
+        for (Coordinate oldPosition : legalMoves.keySet())
         {
-            List<Coordinate> movesForPiece = legalMoves.get(i);
-            System.out.println("Legal moves for piece number " + i + ": ");
-            for (Coordinate move : movesForPiece)
+            System.out.println("Legal moves for piece at [" + oldPosition.getX() + "][" + oldPosition.getY() + "]: ");
+            for (Coordinate move : legalMoves.get(oldPosition))
             {
-                System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
+                System.out.println("[" + move.getX() + "][" + move.getY() + "]");
             }
             System.out.println();
         }

@@ -13,6 +13,13 @@ public class Coordinate {
         this.oldY = oldY;
     }
 
+    public Coordinate(int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.oldX = -1;
+        this.oldY = -1;
+    }
+
     // Getter methods
     public int getX() {
         return x;
