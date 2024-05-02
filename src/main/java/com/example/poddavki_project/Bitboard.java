@@ -226,7 +226,7 @@ public class Bitboard
     // Returns a list of all legal capture coordinates for each piece
     public Map<Coordinate, List<Coordinate>> generateLegalCaptureMoves()
     {
-        Map<Coordinate, List<Coordinate>> legalMoves = new HashMap<>();;
+        Map<Coordinate, List<Coordinate>> legalMoves = new HashMap<>();
 
         // Loop through each position on the board
         for (int x = 0; x < CheckersApplication.WIDTH; x++)
