@@ -1,10 +1,10 @@
 package com.example.poddavki_project;
 
 public class Coordinate {
-    private final int x;
-    private final int y;
-    private final int oldX;
-    private final int oldY;
+    private int x;
+    private int y;
+    private int oldX;
+    private int oldY;
 
     public Coordinate(int x, int y, int oldX, int oldY) {
         this.x = x;
@@ -33,5 +33,11 @@ public class Coordinate {
     }
     public int getOldY() {
         return oldY;
+    }
+    public void setY(int y) {
+        this.y = y;
+    }
+    public void setX(int x) {
+        this.x = x;
     }
 }

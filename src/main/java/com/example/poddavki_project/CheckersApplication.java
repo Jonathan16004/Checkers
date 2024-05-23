@@ -36,6 +36,10 @@ public class CheckersApplication extends Application
     private boolean won = false;
     private final Stage stageWon = new Stage();
 
+    public Tile[][] getBoardVisual() {
+        return boardVisual;
+    }
+
     // Function that creates a scene
     private Parent createContentDuel()
     {
@@ -142,17 +146,7 @@ public class CheckersApplication extends Application
 
             MoveResult result = tryMove(piece, newX, newY);
             // PROBLEM IS HERE
-            Map<Coordinate, List<Coordinate>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
-            for (int i = 0; i < legalMoves.size(); i++)
-            {
-                List<Coordinate> movesForPiece = legalMoves.get(i);
-                System.out.println("Legal moves for piece number " + i + ": ");
-                for (Coordinate move : movesForPiece)
-                {
-                    System.out.println("[" + move.getX() + "][" + move.getY() + "]");
-                }
-                System.out.println();
-            }
+            Map<Coordinate, List<List<Coordinate>>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
             if(board.emptyMoves(legalMoves))
             {
                 if (result.getType() == MoveType.NONE)
@@ -244,65 +238,7 @@ public class CheckersApplication extends Application
         piece.setOnMouseReleased(e ->
         {
             System.out.println("TURN: " + currentPlayer);
-            board.generateLegalCaptureMovesForType(currentPlayer);
-            int newX = toBoard(piece.getLayoutX());
-            int newY = toBoard(piece.getLayoutY());
-
-            MoveResult result = tryMove(piece, newX, newY);
-            int x0 = toBoard(piece.getOldX());
-            int y0 = toBoard(piece.getOldY());
-            Map<Coordinate, List<Coordinate>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
-            if(board.emptyMoves(legalMoves))
-            {
-                if (result.getType() == MoveType.NONE)
-                {
-                    piece.abortMove();
-                }
-                else if (result.getType() == MoveType.NORMAL)
-                {
-                    piece.move(newX, newY);
-                    boardVisual[x0][y0].setPiece(null);
-                    boardVisual[newX][newY].setPiece(piece);
-                    board.MovePiece(y0, x0, newY, newX);
-                    // Checks if a player is now king
-                    if(board.checkKing(newY,newX,currentPlayer))
-                    {
-                        piece.setKing();
-                        board.kingify(newY,newX);
-                        System.out.println("NEW KING " + board.typeOfPiece(newY, newX));
-                    }
-                    currentPlayer = currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
-                }
-                else
-                {
-                    piece.abortMove();
-                }
-            }
-            else if (result.getType() == MoveType.KILL)
-            {
-                piece.move(newX, newY);
-                boardVisual[x0][y0].setPiece(null);
-                boardVisual[newX][newY].setPiece(piece);
-                board.MovePiece(y0, x0, newY, newX);
-                Piece otherPiece = result.getPiece();
-                boardVisual[toBoard(otherPiece.getOldX())][toBoard(otherPiece.getOldY())].setPiece(null);
-                board.deletePiece(toBoard(otherPiece.getOldY()), toBoard(otherPiece.getOldX()));
-                pieceGroup.getChildren().remove(otherPiece);
-                if(board.checkKing(newY,newX,currentPlayer))
-                {
-                    piece.setKing();
-                    board.kingify(newY,newX);
-                    System.out.println("NEW KING " + board.typeOfPiece(newY, newX));
-                }
-                if(board.emptyMovesForPiece(board.generateLegalMovesForPieceCapture(newY, newX, piece.getType())))
-                {
-                    currentPlayer = currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
-                }
-            }
-            else
-            {
-                piece.abortMove();
-            }
+            movePiece(piece);
             // White won
             if(board.checkWin(PieceType.WHITE))
             {
@@ -339,7 +275,7 @@ public class CheckersApplication extends Application
                 int row=0;
                 int col=0;
                 Piece pieceAi = null;
-                legalMoves = board.generateLegalCaptureMovesForType(PieceType.BLACK);
+                Map<Coordinate, List<List<Coordinate>>> legalMoves = board.generateLegalCaptureMovesForType(PieceType.BLACK);
                 if(board.emptyMoves(legalMoves))
                 {
                     legalMoves = board.generateLegalMovesForType(PieceType.BLACK);
@@ -350,18 +286,21 @@ public class CheckersApplication extends Application
                     }
                     for (int i = 0; i < legalMoves.size(); i++)
                     {
-                        List<Coordinate> movesForPiece = legalMoves.get(i);
+                        List<List<Coordinate>> movesForPiece = legalMoves.get(i);
                         System.out.println("Legal moves for piece number " + i + ": ");
-                        for (Coordinate move : movesForPiece)
+                        for (List<Coordinate> move : movesForPiece)
                         {
-                            System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
-                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == PieceType.BLACK ||  board.typeOfPiece(move.getOldX(),move.getOldY()) == PieceType.BLACKKING ) {
-                                row = move.getX();
-                                col = move.getY();
-                                fromRow = move.getOldX();
-                                fromCol = move.getOldY();
-                                pieceAi = boardVisual[fromCol][fromRow].getPiece();
-                                break;
+                            for (Coordinate moveDir : move)
+                            {
+                                System.out.println("[" + moveDir.getX() + "][" + moveDir.getY() + "] from " + "[" + moveDir.getOldX() + "][" + moveDir.getOldY() + "]");
+                                if(board.typeOfPiece(moveDir.getOldX(),moveDir.getOldY()) == PieceType.BLACK ||  board.typeOfPiece(moveDir.getOldX(),moveDir.getOldY()) == PieceType.BLACKKING ) {
+                                    row = moveDir.getX();
+                                    col = moveDir.getY();
+                                    fromRow = moveDir.getOldX();
+                                    fromCol = moveDir.getOldY();
+                                    pieceAi = boardVisual[fromCol][fromRow].getPiece();
+                                    break;
+                                }
                             }
                         }
                     }
@@ -375,18 +314,21 @@ public class CheckersApplication extends Application
                 {
                     for (int i = 0; i < legalMoves.size(); i++)
                     {
-                        List<Coordinate> movesForPiece = legalMoves.get(i);
+                        List<List<Coordinate>> movesForPiece = legalMoves.get(i);
                         System.out.println("Legal moves for piece number " + i + ": ");
-                        for (Coordinate move : movesForPiece)
+                        for (List<Coordinate> move : movesForPiece)
                         {
-                            System.out.println("[" + move.getX() + "][" + move.getY() + "] from " + "[" + move.getOldX() + "][" + move.getOldY() + "]");
-                            if(board.typeOfPiece(move.getOldX(),move.getOldY()) == PieceType.BLACK || board.typeOfPiece(move.getOldX(),move.getOldY()) == PieceType.BLACKKING ) {
-                                row = move.getX();
-                                col = move.getY();
-                                fromRow = move.getOldX();
-                                fromCol = move.getOldY();
-                                pieceAi = boardVisual[fromCol][fromRow].getPiece();
-                                if(pieceAi != null) break;
+                            for(Coordinate moveDir : move)
+                            {
+                                System.out.println("[" + moveDir.getX() + "][" + moveDir.getY() + "] from " + "[" + moveDir.getOldX() + "][" + moveDir.getOldY() + "]");
+                                if(board.typeOfPiece(moveDir.getOldX(),moveDir.getOldY()) == PieceType.BLACK || board.typeOfPiece(moveDir.getOldX(),moveDir.getOldY()) == PieceType.BLACKKING ) {
+                                    row = moveDir.getX();
+                                    col = moveDir.getY();
+                                    fromRow = moveDir.getOldX();
+                                    fromCol = moveDir.getOldY();
+                                    pieceAi = boardVisual[fromCol][fromRow].getPiece();
+                                    if(pieceAi != null) break;
+                                }
                             }
                         }
                     }
@@ -401,15 +343,79 @@ public class CheckersApplication extends Application
         return piece;
     }
 
+    public void movePiece(Piece piece)
+    {
+        System.out.println("MOVING " + currentPlayer);
+        board.generateLegalCaptureMovesForType(currentPlayer);
+        int newX = toBoard(piece.getLayoutX());
+        int newY = toBoard(piece.getLayoutY());
+
+        MoveResult result = tryMove(piece, newX, newY);
+        int x0 = toBoard(piece.getOldX());
+        int y0 = toBoard(piece.getOldY());
+        Map<Coordinate, List<List<Coordinate>>> legalMoves = board.generateLegalCaptureMovesForType(currentPlayer);
+        if(board.emptyMoves(legalMoves))
+        {
+            if (result.getType() == MoveType.NONE)
+            {
+                piece.abortMove();
+            }
+            else if (result.getType() == MoveType.NORMAL)
+            {
+                piece.move(newX, newY);
+                boardVisual[x0][y0].setPiece(null);
+                boardVisual[newX][newY].setPiece(piece);
+                board.MovePiece(y0, x0, newY, newX);
+                // Checks if a player is now king
+                if(board.checkKing(newY,newX,currentPlayer))
+                {
+                    piece.setKing();
+                    board.kingify(newY,newX);
+                    System.out.println("NEW KING " + board.typeOfPiece(newY, newX));
+                }
+                currentPlayer = currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
+            }
+            else
+            {
+                piece.abortMove();
+            }
+        }
+        else if (result.getType() == MoveType.KILL)
+        {
+            piece.move(newX, newY);
+            boardVisual[x0][y0].setPiece(null);
+            boardVisual[newX][newY].setPiece(piece);
+            board.MovePiece(y0, x0, newY, newX);
+            Piece otherPiece = result.getPiece();
+            boardVisual[toBoard(otherPiece.getOldX())][toBoard(otherPiece.getOldY())].setPiece(null);
+            board.deletePiece(toBoard(otherPiece.getOldY()), toBoard(otherPiece.getOldX()));
+            pieceGroup.getChildren().remove(otherPiece);
+            if(board.checkKing(newY,newX,currentPlayer))
+            {
+                piece.setKing();
+                board.kingify(newY,newX);
+                System.out.println("NEW KING " + board.typeOfPiece(newY, newX));
+            }
+            if(board.emptyMovesForPiece(board.generateLegalMovesForPieceCapture(newY, newX, piece.getType())))
+            {
+                currentPlayer = currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
+            }
+        }
+        else
+        {
+            piece.abortMove();
+        }
+    }
+
     // Checks if a piece can move to a destination
-    private MoveResult tryMove(Piece piece, int newX, int newY)
+    public MoveResult tryMove(Piece piece, int newX, int newY)
     {
         int x0 = toBoard(piece.getOldX());
         int y0 = toBoard(piece.getOldY());
         PieceType checkTurn = piece.getType();
         System.out.println("THE TYPE OF THE PIECE IS " + board.typeOfPiece(y0,x0));
         // PROBLEM IS HERE FOR SOME REASON
-        List<Coordinate> movesForPiece = board.generateLegalMovesForPiece(y0,x0,piece.getType());
+        List<List<Coordinate>> movesForPiece = board.generateLegalMovesForPiece(y0,x0,piece.getType());
         board.printLegalPieceMoves(y0,x0);
         if(piece.getType() == PieceType.WHITEKING)
         {
@@ -421,25 +427,27 @@ public class CheckersApplication extends Application
         }
         if(checkTurn == currentPlayer && !movesForPiece.isEmpty())
         {
-            for (Coordinate move : movesForPiece)
+            for (List<Coordinate> move : movesForPiece)
             {
-                if(move.getX() == newY && move.getY() == newX)
+                for(Coordinate moveDir : move)
                 {
-                    // In case of a normal move
-                    if(Math.abs(newX - x0) == 1)
+                    if(moveDir.getX() == newY && moveDir.getY() == newX)
                     {
-                        System.out.println("Normal MOVE!");
-                        return new MoveResult(MoveType.NORMAL);
-                    }
+                        // In case of a normal move
+                        if(Math.abs(newX - x0) == 1)
+                        {
+                            System.out.println("Normal MOVE!");
+                            return new MoveResult(MoveType.NORMAL);
+                        }
 
-                    else if (Math.abs(newX - x0) == 2/* && newY - y0 == piece.getType().moveDir * 2*/) {
-                        int x1;
-                        int y1;
+                        else if (Math.abs(newX - x0) == 2/* && newY - y0 == piece.getType().moveDir * 2*/) {
+                            int x1;
+                            int y1;
 
-                        x1 = x0 + (newX - x0) / 2;
-                        y1 = y0 + (newY - y0) / 2;
+                            x1 = x0 + (newX - x0) / 2;
+                            y1 = y0 + (newY - y0) / 2;
 
-                        if (boardVisual[x1][y1].hasPiece() && boardVisual[x1][y1].getPiece().getType() != piece.getType())
+                            if (boardVisual[x1][y1].hasPiece() && boardVisual[x1][y1].getPiece().getType() != piece.getType())
                             {
                                 System.out.println("KILL MOVE!");
                                 return new MoveResult(MoveType.KILL, boardVisual[x1][y1].getPiece());
@@ -448,6 +456,7 @@ public class CheckersApplication extends Application
                     }
                 }
             }
+        }
         System.out.println("No Move");
         return new MoveResult(MoveType.NONE);
     }

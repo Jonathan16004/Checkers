@@ -101,5 +101,4 @@ public class Piece extends StackPane
         bg.setStroke(Color.valueOf("#dbb702"));
         bg.setFill(Color.valueOf("#dbb702"));
     }
-
 }

@@ -38,8 +38,7 @@ public class View extends Application implements IView
     public boolean won = false;
     public final Stage stageWon = new Stage();
 
-    // Function that creates a scene
-    public Parent createContentDuel()
+    private Parent createContentDuel()
     {
         Pane root = new Pane();
 
@@ -137,7 +136,7 @@ public class View extends Application implements IView
 
         return root;
     }
-
+    // function takes a pixel coordinate value and converts it to a corresponding board coordinate
     public int toBoard(double pixel)
     {
         return (int)(pixel + TILE_SIZE / 2) / TILE_SIZE;
@@ -180,6 +179,7 @@ public class View extends Application implements IView
         Scene duelScene = new Scene(createContentDuel());
         stage.setScene(duelScene); // Switch to the duel scene
     }
+
 
     public static void main(String[] args)
     {
