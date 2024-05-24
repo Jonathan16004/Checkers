@@ -22,21 +22,21 @@ public class View extends Application implements IView
     {
         presenter = new Presenter(this);
     }
-    public static final  int TILE_SIZE = 100;
-    public static final  int WIDTH = 8;
-    public static final int HEIGHT = 8;
+    public static  int TILE_SIZE = 100;
+    public static  int WIDTH = 8;
+    public static int HEIGHT = 8;
 
 
     // if any problems are cause change from final to normal
-    public final Tile[][] boardVisual = new Tile[WIDTH][HEIGHT];
-    public final Group tileGroup = new Group();
-    public final Group pieceGroup = new Group();
+    public Tile[][] boardVisual = new Tile[WIDTH][HEIGHT];
+    public Group tileGroup = new Group();
+    public Group pieceGroup = new Group();
 
     public PieceType currentPlayer = PieceType.WHITE;
 
     public boolean ai = false;
     public boolean won = false;
-    public final Stage stageWon = new Stage();
+    public Stage stageWon = new Stage();
 
     private Parent createContentDuel()
     {
@@ -84,7 +84,6 @@ public class View extends Application implements IView
         }
         return root;
     }
-
 
     public Parent blackWinScene() {
         Pane root = new Pane();

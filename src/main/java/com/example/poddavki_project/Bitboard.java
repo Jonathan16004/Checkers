@@ -49,6 +49,28 @@ public class Bitboard
         }
     }
 
+    public Bitboard CloneBitboard()
+    {
+        Bitboard clone = new Bitboard();
+        clone.player1 = this.player1;
+        clone.player2 = this.player2;
+        clone.king1 = this.king1;
+        clone.king2 = this.king2;
+        return clone;
+    }
+
+    public int[] EatPiece(int oldRow, int oldCol, int row, int col)
+    {
+        int dx = row - oldRow;
+        int dy = col - oldCol;
+
+        int jumpX = oldRow + dx / 2;
+        int jumpY = oldCol + dy / 2;
+
+        MovePiece(oldRow, oldCol, row, col);
+        deletePiece(jumpX, jumpY);
+        return new int[]{jumpX, jumpY};
+    }
     // Moves a piece on the bitboard
     public void MovePiece(int oldRow, int oldCol, int newRow, int newCol)
     {
@@ -149,14 +171,11 @@ public class Bitboard
         int[] pieceCordination = new int[]{-1, -1};
         int leftestBit = Long.numberOfLeadingZeros(pieces);
         leftestBit = 63 - leftestBit;
-        System.out.println(Long.toBinaryString(1L << leftestBit));
-        System.out.println(Long.toBinaryString(player1));
         if (leftestBit != -1) {
             pieceCordination[0] = leftestBit / 8;
             pieceCordination[1] = leftestBit % 8;
     }
         long currentPosition = 1L << (pieceCordination[0] * CheckersApplication.HEIGHT + pieceCordination[1]);
-        System.out.println(Long.toBinaryString(currentPosition));
 
 
         return pieceCordination;
@@ -186,40 +205,24 @@ public class Bitboard
     // Returns a list of all legal coordinates for each piece
     public Map<Coordinate, List<List<Coordinate>>> generateLegalMovesForType(PieceType type)
     {
-        Map<Coordinate, List<List<Coordinate>>> legalMoves = generateLegalCaptureMoves();
+        Map<Coordinate, List<List<Coordinate>>> legalMoves = generateLegalCaptureMovesForType(type);
 
         if(emptyMoves(legalMoves))
         {
-            // Loop through each position on the board
-            for (int x = 0; x < CheckersApplication.WIDTH; x++)
-            {
-                for (int y = 0; y < CheckersApplication.HEIGHT; y++)
-                {
-                    long currentPosition = 1L << (x * CheckersApplication.HEIGHT + y);
 
-                    if(type == PieceType.BLACK || type == PieceType.BLACKKING)
-                    {
-                        // If the current position contains any type of piece
-                        if (((player1 | king1) & currentPosition) != 0)
-                        {
-                            Coordinate fromLocation = new Coordinate(x,y);
-                            List<List<Coordinate>> pieceLegalMovesCapture = generateLegalMovesForPiece(x, y, type);
-                            legalMoves.put(fromLocation, pieceLegalMovesCapture);
-                        }
-                    }
-                    else
-                    {
-                        // If the current position contains any type of piece
-                        if (((player2 | king2) & currentPosition) != 0)
-                        {
-                            Coordinate fromLocation = new Coordinate(x,y);
-                            List<List<Coordinate>> pieceLegalMovesCapture = generateLegalMovesForPiece(x, y, type);
-                            legalMoves.put(fromLocation, pieceLegalMovesCapture);
-                        }
-                    }
-                }
+            long typePlayers = player1|king1;
+            if(type == PieceType.WHITE || type == PieceType.WHITEKING) typePlayers = player2|king2;
+            int[] checkExist = (getFirstBit(typePlayers));
+            while (checkExist[0] != -1)
+            {
+                long currentPosition = 1L << (checkExist[0] * CheckersApplication.HEIGHT + checkExist[1]);
+                List<List<Coordinate>> pieceLegalMovesCapture = generateLegalMovesForPiece(checkExist[0], checkExist[1], typeOfPiece(checkExist[0],checkExist[1]));
+                legalMoves.put(new Coordinate(checkExist[0],checkExist[1]), pieceLegalMovesCapture);
+                typePlayers &= ~currentPosition;
+                checkExist = getFirstBit(typePlayers);
             }
         }
+
         return legalMoves;
     }
 
@@ -351,18 +354,18 @@ public class Bitboard
         return getCapturingMoves(row, col, type, new ArrayList<>());
     }
 
-    public List<List<Coordinate>> getCapturingMoves(int x, int y, PieceType type, List<Coordinate> previousJumps) {
 
-        System.out.println("CAPTURETURETURE");
-        List<List<Coordinate>> captureMovesLegal = new ArrayList<>();
+    // Helper method to get capturing moves for a piece, including consecutive jumps
+    public List<List<Coordinate>> getCapturingMoves(int x, int y, PieceType type, List<Coordinate> previousJumps)
+    {
+        List<List<Coordinate>> allCaptureDir = new ArrayList<>();
 
         // Check capturing moves in all 4 diagonal directions
-        if (!previousJumps.isEmpty() || type == PieceType.BLACKKING || type == PieceType.WHITEKING) {
+        if(!previousJumps.isEmpty() || type == PieceType.BLACKKING || type == PieceType.WHITEKING)
+        {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
                     if (dx != 0 && dy != 0) { // Avoid same square or straight moves
-
-                        List<Coordinate> newJumps = new ArrayList<>(previousJumps); // Create a new list for each direction
 
                         int jumpX = x + dx;
                         int jumpY = y + dy;
@@ -374,16 +377,21 @@ public class Bitboard
                             int afterJumpX = jumpX + dx;
                             int afterJumpY = jumpY + dy;
 
-                            if (isValidPosition(afterJumpX, afterJumpY) && isTileEmpty(afterJumpX, afterJumpY) && !containsCoordinate(newJumps, afterJumpX, afterJumpY)) {
+                            if (isValidPosition(afterJumpX, afterJumpY) && isTileEmpty(afterJumpX, afterJumpY) && !containsCoordinate(previousJumps,afterJumpX,afterJumpY))
+                            {
                                 // Adds the jumped coordinate
-                                newJumps.add(new Coordinate(afterJumpX, afterJumpY, x, y));
-                                captureMovesLegal.addAll(getCapturingMoves(afterJumpX, afterJumpY, type, newJumps));
+                                previousJumps.add(new Coordinate(afterJumpX, afterJumpY, x, y));
+                                getCapturingMoves(afterJumpX, afterJumpY, type, previousJumps);
                             }
                         }
                     }
                 }
             }
-        } else {
+            // Adding to previousJumps
+            allCaptureDir.add(previousJumps);
+        }
+        else
+        {
             int moveDirY; // Determine move direction for normal pieces
             if (type == PieceType.BLACK) {
                 moveDirY = 1; // Black moves down
@@ -393,9 +401,6 @@ public class Bitboard
 
             for (int dx = -1; dx <= 1; dx++) {
                 if (dx != 0) { // Avoid same square (dx = 0)
-
-                    List<Coordinate> newJumps = new ArrayList<>(previousJumps); // Create a new list for each direction
-
                     int jumpX = x + moveDirY;
                     int jumpY = y + dx;
 
@@ -406,20 +411,18 @@ public class Bitboard
                         int afterJumpX = jumpX + moveDirY;
                         int afterJumpY = jumpY + dx;
 
-                        if (isValidPosition(afterJumpX, afterJumpY) && isTileEmpty(afterJumpX, afterJumpY) && !containsCoordinate(newJumps, afterJumpX, afterJumpY)) {
+                        if (isValidPosition(afterJumpX, afterJumpY) && isTileEmpty(afterJumpX, afterJumpY) && !containsCoordinate(previousJumps,afterJumpX,afterJumpY)) {
                             // Adds the jumped coordinate
-                            newJumps.add(new Coordinate(afterJumpX, afterJumpY, x, y));
-                            captureMovesLegal.addAll(getCapturingMoves(afterJumpX, afterJumpY, type, newJumps));
+                            previousJumps.add(new Coordinate(afterJumpX, afterJumpY, x, y));
+                            getCapturingMoves(afterJumpX, afterJumpY, type, previousJumps);
                         }
                     }
                 }
             }
+            // Adding to previousJumps
+            allCaptureDir.add(previousJumps);
         }
-        if (!previousJumps.isEmpty()) {
-            // Add the list of jumps for this direction
-            captureMovesLegal.add(previousJumps);
-        }
-        return captureMovesLegal;
+        return allCaptureDir;
     }
 
 
@@ -436,7 +439,6 @@ public class Bitboard
 
 
     public List<List<Coordinate>> getNormalMoves(int x, int y, PieceType type) {
-        System.out.println("NORMALMOVESVESVES");
         List<List<Coordinate>> normalMovesAllDir = new ArrayList<>();
 
         // In case of regular piece
@@ -471,22 +473,36 @@ public class Bitboard
     }
 
     public static boolean isEmptyMovesListList(List<List<Coordinate>> moves) {
-        // Check if the outer list is empty
-        if (moves == null || moves.isEmpty()) {
+    // Check if the outer list is empty
+    if (moves == null || moves.isEmpty()) {
+        return true;
+    }
+
+    // Check if any sublist is empty
+    for (List<Coordinate> sublist : moves) {
+        if (sublist.isEmpty()) {
             return true;
         }
+    }
 
-        // Check if any sublist is empty
-        for (List<Coordinate> sublist : moves) {
-            if (sublist.isEmpty()) {
-                return true;
+    // No empty sublists found
+    return false;
+}
+
+    public static boolean containsCoordinateListList(List<List<Coordinate>> listList, int x, int y) {
+
+        System.out.println("Hello");
+        for (List<Coordinate> sublist : listList) {
+            for(Coordinate subSubList : sublist)
+            {
+                if (subSubList.getX() == x && subSubList.getY() == y || subSubList.getOldX() == x && subSubList.getOldY() == y) {
+                    return true;
+                }
             }
         }
 
-        // No empty sublists found
         return false;
     }
-
     // Helper method to check if a position is within the board bounds
     private boolean isValidPosition(int x, int y)
     {
@@ -624,20 +640,29 @@ public class Bitboard
 
         Bitboard board = new Bitboard();
 
-        board.printLegalMoves();
+        board.MovePiece(5,0,3,2);
+        board.deletePiece(6,5);
+        board.printLegalPieceMoves(2,1);
 
         board.printBoard();
+        board.EatPiece(2,1,4,3);
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        board.printBoard();
 
-        System.out.println("hello");
+        Map<Coordinate, List<List<Coordinate>>> check = board.generateLegalMovesForType(PieceType.BLACK);
+        System.out.println();
 
-        //---------------------------------------
-        System.out.println("BLACK");
-        System.out.println(Long.toBinaryString(board.player1));
-        System.out.println("BLACK KINGS");
-        System.out.println(Long.toBinaryString(board.king1));
-        System.out.println("WHITE");
-        System.out.println(Long.toBinaryString(board.player2));
-        System.out.println("WHITE KINGS");
-        System.out.println(Long.toBinaryString(board.king2));
+
+//       ---------------------------------------
+//        System.out.println("BLACK");
+//        System.out.println(Long.toBinaryString(board.player1));
+//        System.out.println("BLACK KINGS");
+//        System.out.println(Long.toBinaryString(board.king1));
+//        System.out.println("WHITE");
+//        System.out.println(Long.toBinaryString(board.player2));
+//        System.out.println("WHITE KINGS");
+//        System.out.println(Long.toBinaryString(board.king2));
     }
 }
