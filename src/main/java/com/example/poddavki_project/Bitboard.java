@@ -639,23 +639,19 @@ public class Bitboard
     public static void main(String[] args) {
 
         Bitboard board = new Bitboard();
-
-        board.MovePiece(5,0,3,2);
-        board.deletePiece(6,5);
-        board.printLegalPieceMoves(2,1);
-
-        board.printBoard();
-        board.EatPiece(2,1,4,3);
-        System.out.println();
-        System.out.println();
-        System.out.println();
+        board.MovePiece(5,4,4,3);
         board.printBoard();
 
-        Map<Coordinate, List<List<Coordinate>>> check = board.generateLegalMovesForType(PieceType.BLACK);
-        System.out.println();
 
-
-//       ---------------------------------------
+       //---------------------------------------
+        System.out.println("BLACK");
+        System.out.println(board.player1);
+        System.out.println("BLACK KINGS");
+        System.out.println(board.king1);
+        System.out.println("WHITE");
+        System.out.println(board.player2);
+        System.out.println("WHITE KINGS");
+        System.out.println(board.king2);
 //        System.out.println("BLACK");
 //        System.out.println(Long.toBinaryString(board.player1));
 //        System.out.println("BLACK KINGS");

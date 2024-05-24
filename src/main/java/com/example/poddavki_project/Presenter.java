@@ -55,6 +55,14 @@ public class Presenter implements IPresenter
                 // :)
             }
             model.board.printBoard();
+            System.out.println("BLACK");
+            System.out.println(model.board.player1);
+            System.out.println("BLACK KINGS");
+            System.out.println(model.board.king1);
+            System.out.println("WHITE");
+            System.out.println(model.board.player2);
+            System.out.println("WHITE KINGS");
+            System.out.println(model.board.king2);
             while (view.ai && view.currentPlayer == PieceType.BLACK && !view.won)
             {
                 List<Coordinate> bestMove = ai.getBestMovesForType(PieceType.BLACK);    // Gets the best move for the AI

@@ -1,17 +1,61 @@
 package com.example.poddavki_project;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Ai {
     public Model model;
     public Presenter app;
+    public static HashMap<String, List<Coordinate>> openingBook;
+    public boolean usedOpening = false;
+
+    static
+    {
+        openingBook = new HashMap<>(); // Initialize the HashMap
+
+        // Case 1
+        List<Coordinate> resultMoves = new ArrayList<>(); // Create a list of moves
+        resultMoves.add(new Coordinate(3, 2,2, 3)); // Add the moves to the list
+        openingBook.put("6172838606831353856,11163050", resultMoves); // Add the opening and its moves to the book
+
+        // Case 2
+        resultMoves = new ArrayList<>(); // Create a list of moves
+        resultMoves.add(new Coordinate(3, 2, 2, 3)); // Add the moves to the list
+        openingBook.put("6172835308296470528,11163050", resultMoves); // Add the opening and its moves to the book
+
+        // Case 3
+        resultMoves = new ArrayList<>(); // Create a list of moves
+        resultMoves.add(new Coordinate(3, 4,2, 5)); // Add the moves to the list
+        openingBook.put("6172835334066274304,11163050", resultMoves); // Add the opening and its moves to the book
+
+        // Case 4
+        resultMoves = new ArrayList<>(); // Create a list of moves
+        resultMoves.add(new Coordinate(3, 4, 2, 5)); // Add the moves to the list
+        openingBook.put("6172822139926740992,11163050", resultMoves); // Add the opening and its moves to the book
+
+        // Case 5
+        resultMoves = new ArrayList<>(); // Create a list of moves
+        resultMoves.add(new Coordinate(3, 6, 2, 7)); // Add the moves to the list
+        openingBook.put("6172822243005956096,11163050", resultMoves); // Add the opening and its moves to the book
+
+        // Case 6
+        resultMoves = new ArrayList<>(); // Create a list of moves
+        resultMoves.add(new Coordinate(3, 6, 2, 7)); // Add the moves to the list
+        openingBook.put("6172769466447822848,11163050", resultMoves); // Add the opening and its moves to the book
+
+        // Case 7 HERE
+        resultMoves = new ArrayList<>(); // Create a list of moves
+        resultMoves.add(new Coordinate(3, 6, 2, 5)); // Add the moves to the list
+        openingBook.put("6172769878764683264,11163050", resultMoves); // Add the opening and its moves to the book
+    }
 
     public Ai(Model board, Presenter app) {
         this.model = board;
         this.app = app;
     }
+
 
     public int evaluate(PieceType type, List<Coordinate> coords) {
         type = PieceType.BLACK;
@@ -73,6 +117,13 @@ public class Ai {
     }
 
     public List<Coordinate> getBestMovesForType(PieceType type) {
+
+        if(!usedOpening)
+        {
+            usedOpening = true;
+            return openingBook.get(model.board.player2 + "," + model.board.player1);
+        }
+
         type = PieceType.BLACK;
         Map<Coordinate, List<List<Coordinate>>> legalMoves = model.board.generateLegalMovesForType(PieceType.BLACK);
         int score = Integer.MAX_VALUE;

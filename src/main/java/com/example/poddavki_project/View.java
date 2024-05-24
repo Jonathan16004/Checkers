@@ -26,8 +26,6 @@ public class View extends Application implements IView
     public static  int WIDTH = 8;
     public static int HEIGHT = 8;
 
-
-    // if any problems are cause change from final to normal
     public Tile[][] boardVisual = new Tile[WIDTH][HEIGHT];
     public Group tileGroup = new Group();
     public Group pieceGroup = new Group();
