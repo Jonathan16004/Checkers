@@ -77,6 +77,7 @@ public class Presenter implements IPresenter
         for(Coordinate bestMoveCoord : bestMove)
         {
             moveAiPiece(view.boardVisual[bestMoveCoord.getOldY()][bestMoveCoord.getOldX()].getPiece(), bestMoveCoord);
+            System.out.println("AI MOVED X: " + bestMoveCoord.getX() + " Y: " + bestMoveCoord.getY());
         }
     }
 
@@ -151,6 +152,7 @@ public class Presenter implements IPresenter
         int newX = coord.getY(); /*col*/
         int newY = coord.getX(); /*row*/
 
+        // Problem is here
         MoveResult result = tryMove(piece, newX, newY);
         int x0 = coord.getOldY(); /*col*/
         int y0 = coord.getOldX(); /*row*/
@@ -160,10 +162,17 @@ public class Presenter implements IPresenter
             piece.move(newX, newY);
             view.boardVisual[x0][y0].setPiece(null);
             view.boardVisual[newX][newY].setPiece(piece);
-            model.board.MovePiece(y0, x0, newY, newX);
-            Piece otherPiece = result.getPiece();
+            int[] eatenPiece = model.board.EatPiece(y0, x0, newY, newX);
+           // model.board.MovePiece(y0, x0, newY, newX);
+            //Piece otherPiece = result.getPiece();
+            Piece otherPiece = view.boardVisual[eatenPiece[1]][eatenPiece[0]].getPiece();
+
+            if(otherPiece == null)
+            {
+                System.out.println("ERROR");
+            }
             view.boardVisual[view.toBoard(otherPiece.getOldX())][view.toBoard(otherPiece.getOldY())].setPiece(null);
-            model.board.deletePiece(view.toBoard(otherPiece.getOldY()), view.toBoard(otherPiece.getOldX()));
+            //model.board.deletePiece(view.toBoard(otherPiece.getOldY()), view.toBoard(otherPiece.getOldX()));
             view.pieceGroup.getChildren().remove(otherPiece);
             if(model.board.checkKing(newY,newX,view.currentPlayer))
             {

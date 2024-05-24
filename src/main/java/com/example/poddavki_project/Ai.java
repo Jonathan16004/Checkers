@@ -83,6 +83,11 @@ public class Ai {
             {
                 if(!move.isEmpty())
                 {
+                    while(model.board.typeOfPiece(move.getFirst().getOldX(), move.getFirst().getOldY()) == PieceType.WHITE)
+                    {
+                        model.board.printBoard();
+                        System.out.println("WTF");
+                    }
                         if(score > evaluate(PieceType.BLACK,move))
                     {
                         score = evaluate(PieceType.BLACK,move);
