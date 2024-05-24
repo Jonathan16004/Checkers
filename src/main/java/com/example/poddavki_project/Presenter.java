@@ -59,6 +59,14 @@ public class Presenter implements IPresenter
             {
                 List<Coordinate> bestMove = ai.getBestMovesForType(PieceType.BLACK);    // Gets the best move for the AI
                 moveAi(bestMove);
+                if(model.board.checkWin(PieceType.WHITE))
+                {
+                    System.out.println("WHITE WON");
+                    Scene whiteWon = new Scene(view.whiteWinScene());
+                    view.stageWon.setScene(whiteWon);
+                    view.stageWon.show();
+                    view.won = true;
+                }
             }
         });
         return piece;
@@ -187,62 +195,8 @@ public class Presenter implements IPresenter
         {
             System.out.println("ERROR");
         }
-//        Map<Coordinate, List<List<Coordinate>>> legalMoves = model.board.generateLegalCaptureMovesForType(view.currentPlayer);
-//        if(model.board.emptyMoves(legalMoves))
-//        {
-//            if (result.getType() == MoveType.NONE)
-//            {
-//                piece.abortMove();
-//            }
-//            else if (result.getType() == MoveType.NORMAL)
-//            {
-//                piece.move(newX, newY);
-//                view.boardVisual[x0][y0].setPiece(null);
-//                view.boardVisual[newX][newY].setPiece(piece);
-//                model.board.MovePiece(y0, x0, newY, newX);
-//                // Checks if a player is now king
-//                if(model.board.checkKing(newY,newX,view.currentPlayer))
-//                {
-//                    piece.setKing();
-//                    model.board.kingify(newY,newX);
-//                    System.out.println("NEW KING " + model.board.typeOfPiece(newY, newX));
-//                }
-//                view.currentPlayer = view.currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
-//            }
-//            else
-//            {
-//                while(true) System.out.println("ERROR");
-//            }
-//        }
-//        else if (result.getType() == MoveType.KILL)
-//        {
-//            piece.move(newX, newY);
-//            view.boardVisual[x0][y0].setPiece(null);
-//            view.boardVisual[newX][newY].setPiece(piece);
-//            model.board.MovePiece(y0, x0, newY, newX);
-//            Piece otherPiece = result.getPiece();
-//            view.boardVisual[view.toBoard(otherPiece.getOldX())][view.toBoard(otherPiece.getOldY())].setPiece(null);
-//            model.board.deletePiece(view.toBoard(otherPiece.getOldY()), view.toBoard(otherPiece.getOldX()));
-//            view.pieceGroup.getChildren().remove(otherPiece);
-//            if(model.board.checkKing(newY,newX,view.currentPlayer))
-//            {
-//                piece.setKing();
-//                model.board.kingify(newY,newX);
-//                System.out.println("NEW KING " + model.board.typeOfPiece(newY, newX));
-//            }
-//            if(model.board.emptyMovesForPiece(model.board.generateLegalMovesForPieceCapture(newY, newX, piece.getType())))
-//            {
-//                view.currentPlayer = view.currentPlayer == PieceType.BLACK ? PieceType.WHITE : PieceType.BLACK;
-//            }
-//        }
-//        else
-//        {
-//            while(true) System.out.println("ERROR");
-//        }
     }
 
-    // Doesnt move on second time therefor it gets null make it so it doesnt do it piece by piece to fix AI IMPORTANT
-    // Checks if a piece can move to a destination
     public MoveResult tryMove(Piece piece, int newCol /*Col*/, int newRow /*Row*/)
     {
         // row: newY y0 x, col: newX x0 y.
@@ -296,5 +250,4 @@ public class Presenter implements IPresenter
         System.out.println("No Move");
         return new MoveResult(MoveType.NONE);
     }
-
 }
